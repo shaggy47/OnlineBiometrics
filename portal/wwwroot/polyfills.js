@@ -7,7 +7,7 @@
 /*! no static exports found */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(/*! /home/devmanus/coding/OnlineBiometric/portal/clientApp/src/polyfills.ts */"hN/g");
+module.exports = __webpack_require__(/*! /home/devmanus/coding/Portal/OnlineBiometrics/portal/clientApp/src/polyfills.ts */"hN/g");
 
 
 /***/ }),
