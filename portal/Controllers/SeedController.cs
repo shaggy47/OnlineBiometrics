@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 
 namespace portal
 {
@@ -30,6 +31,7 @@ namespace portal
             this.environment = env;
         }
 
+        
         [Route("list")]
         [HttpGet]
         public IActionResult ListUsers()

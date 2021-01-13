@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace portal
 {
@@ -27,9 +28,10 @@ namespace portal
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
-            
 
-            services.AddDefaultIdentity<ApplicationUser>(options => {
+
+            services.AddDefaultIdentity<ApplicationUser>(options =>
+            {
                 options.SignIn.RequireConfirmedAccount = true;
                 options.Password.RequireDigit = true;
                 options.Password.RequireLowercase = true;
@@ -43,9 +45,19 @@ namespace portal
             services.AddIdentityServer()
                 .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
 
-            services.AddAuthentication()
-                .AddIdentityServerJwt();
-                
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(options =>
+            {
+
+                options.Authority = $"https://{Configuration["Auth:Domain"]}/";
+                options.Audience = Configuration["Auth:Audience"];
+            }).AddIdentityServerJwt();
+
+            services.AddScoped<TokenGenerator>();
+
             services.AddControllersWithViews();
             services.AddRazorPages();
 
@@ -69,14 +81,16 @@ namespace portal
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseSwagger();
-            
-            app.UseSwaggerUI(c=>{
+
+            app.UseSwaggerUI(c =>
+            {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "portal");
             });
 
             app.UseRouting();
 
             app.UseAuthentication();
+            app.UseMiddleware<TokenHandlerMiddleware>();
             app.UseIdentityServer();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
