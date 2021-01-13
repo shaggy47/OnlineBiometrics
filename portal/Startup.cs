@@ -45,6 +45,7 @@ namespace portal
 
             services.AddAuthentication()
                 .AddIdentityServerJwt();
+                
             services.AddControllersWithViews();
             services.AddRazorPages();
 
