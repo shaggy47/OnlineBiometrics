@@ -40,18 +40,22 @@ namespace portal
         public IActionResult SignIn([FromBody] ApplicationUser user)
         {
             var dbUser = _userManager.FindByNameAsync(user.UserName).Result;
-            
+
             if (dbUser == null)
                 return Unauthorized();
 
             var role = _userManager.GetRolesAsync(dbUser).Result;
+            string[] roles = new string[role.Count];
+            role.CopyTo(roles, 0);
+
             string token = string.Empty;
 
             if (dbUser != null)
             {
                 var claims = new List<Claim>()
                 {
-                    new Claim(ClaimTypes.Name, dbUser.UserName)
+                    new Claim(ClaimTypes.Name, dbUser.UserName),
+                    new Claim(ClaimTypes.Role, string.Join(';', roles))
                 };
 
                 token = _tokenGenerator.GenerateJwtToken(dbUser, claims);

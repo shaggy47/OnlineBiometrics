@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { AuthService } from '../auth.service';
 import { LogonServiceService } from '../logon-service.service';
 
 @Component({
@@ -11,7 +12,7 @@ import { LogonServiceService } from '../logon-service.service';
 export class SingninComponent implements OnInit {
 
   title = 'Online Kyc Portal';
-  logonFormGroup:FormGroup = new FormGroup({
+  logonFormGroup: FormGroup = new FormGroup({
     userName: new FormControl('', Validators.required),
     password: new FormControl('', Validators.required),
     rememberMe: new FormControl(false)
@@ -20,19 +21,21 @@ export class SingninComponent implements OnInit {
    *
    */
   constructor(
-      private logonService:LogonServiceService,
-      private router:Router
-    ) {
-    
-    
+    private logonService: AuthService,
+    private router: Router
+  ) {
+
+
   }
 
   ngOnInit(): void {
-    
+
   }
-  LogIn() {
-    console.log(this.logonFormGroup.controls['userName'].value);
-    console.log(this.logonFormGroup.controls['password'].value);
+  onSubmit() {
+    this.logonService.signIn(this.logonFormGroup.controls['userName'].value, this.logonFormGroup.controls['password'].value)
+      .subscribe(result => {
+        console.log(result);
+      });
   }
 
   register() {
