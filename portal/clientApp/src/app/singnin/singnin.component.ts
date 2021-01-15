@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import jwtDecode, { JwtPayload } from 'jwt-decode';
 import { AuthService } from '../auth.service';
 import { LogonServiceService } from '../logon-service.service';
 
@@ -21,7 +22,7 @@ export class SingninComponent implements OnInit {
    *
    */
   constructor(
-    private logonService: AuthService,
+    private authService: AuthService,
     private router: Router
   ) {
 
@@ -32,9 +33,23 @@ export class SingninComponent implements OnInit {
 
   }
   onSubmit() {
-    this.logonService.signIn(this.logonFormGroup.controls['userName'].value, this.logonFormGroup.controls['password'].value)
-      .subscribe(result => {
-        console.log(result);
+    let token: any;
+    let isAuthenticated: boolean = false;
+    this.authService.signIn(this.logonFormGroup.controls['userName'].value, this.logonFormGroup.controls['password'].value)
+      .subscribe((payload: any) => {
+
+        token = jwtDecode(payload.token, { header: true });
+        let decoded = jwtDecode<JwtPayload>(payload.token);
+        this.authService.setUserInfo(decoded);
+
+        if (token != '')
+          isAuthenticated = true;
+
+        if (this.authService.isAdmin())
+          this.router.navigateByUrl('/review');
+        else
+          this.router.navigateByUrl('/upload');
+
       });
   }
 

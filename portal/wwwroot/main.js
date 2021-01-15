@@ -326,12 +326,8 @@ AppModule.ɵinj = _angular_core__WEBPACK_IMPORTED_MODULE_1__["ɵɵdefineInjector
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "AuthService", function() { return AuthService; });
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "fXoL");
-/* harmony import */ var jwt_decode__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! jwt-decode */ "EjJx");
-/* harmony import */ var rxjs__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! rxjs */ "qCKp");
-/* harmony import */ var _environments_environment__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../environments/environment */ "AytR");
-/* harmony import */ var _angular_common_http__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @angular/common/http */ "tk/3");
-
-
+/* harmony import */ var _environments_environment__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../environments/environment */ "AytR");
+/* harmony import */ var _angular_common_http__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @angular/common/http */ "tk/3");
 
 
 
@@ -341,28 +337,33 @@ class AuthService {
         this.httpClient = httpClient;
     }
     signIn(userName, pass) {
-        let token;
-        let isAuthenticated = false;
-        this.httpClient.post(_environments_environment__WEBPACK_IMPORTED_MODULE_3__["environment"].authUrl + 'signin', { userName: userName, passwordHash: pass })
-            .subscribe((payload) => {
-            token = Object(jwt_decode__WEBPACK_IMPORTED_MODULE_1__["default"])(payload.token, { header: true });
-            let decoded = Object(jwt_decode__WEBPACK_IMPORTED_MODULE_1__["default"])(payload.token);
-            console.log(decoded);
-            console.log(token);
-            if (token != '')
-                isAuthenticated = true;
-        });
-        return Object(rxjs__WEBPACK_IMPORTED_MODULE_2__["of"])(isAuthenticated);
+        return this.httpClient.post(_environments_environment__WEBPACK_IMPORTED_MODULE_1__["environment"].authUrl + 'signin', { userName: userName, passwordHash: pass });
+    }
+    setUserInfo(payload) {
+        localStorage.setItem('userName', payload.unique_name);
+        localStorage.setItem('role', payload.role);
+        if (String(payload.role).toLowerCase().includes('admin'))
+            localStorage.setItem('isAdmin', 'true');
+        if (String(payload.unique_name) != '')
+            localStorage.setItem('validUser', 'true');
+        else
+            localStorage.setItem('validUser', 'false');
+    }
+    isLoggedIn() {
+        return Boolean(localStorage.getItem('validUser'));
+    }
+    isAdmin() {
+        return Boolean(localStorage.getItem('isAdmin'));
     }
 }
-AuthService.ɵfac = function AuthService_Factory(t) { return new (t || AuthService)(_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵinject"](_angular_common_http__WEBPACK_IMPORTED_MODULE_4__["HttpClient"])); };
+AuthService.ɵfac = function AuthService_Factory(t) { return new (t || AuthService)(_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵinject"](_angular_common_http__WEBPACK_IMPORTED_MODULE_2__["HttpClient"])); };
 AuthService.ɵprov = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineInjectable"]({ token: AuthService, factory: AuthService.ɵfac, providedIn: 'root' });
 /*@__PURE__*/ (function () { _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵsetClassMetadata"](AuthService, [{
         type: _angular_core__WEBPACK_IMPORTED_MODULE_0__["Injectable"],
         args: [{
                 providedIn: 'root'
             }]
-    }], function () { return [{ type: _angular_common_http__WEBPACK_IMPORTED_MODULE_4__["HttpClient"] }]; }, null); })();
+    }], function () { return [{ type: _angular_common_http__WEBPACK_IMPORTED_MODULE_2__["HttpClient"] }]; }, null); })();
 
 
 /***/ }),
@@ -379,8 +380,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "SingninComponent", function() { return SingninComponent; });
 /* harmony import */ var _angular_core__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @angular/core */ "fXoL");
 /* harmony import */ var _angular_forms__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @angular/forms */ "3Pt+");
-/* harmony import */ var _auth_service__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../auth.service */ "ccyI");
-/* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @angular/router */ "tyNb");
+/* harmony import */ var jwt_decode__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! jwt-decode */ "EjJx");
+/* harmony import */ var _auth_service__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../auth.service */ "ccyI");
+/* harmony import */ var _angular_router__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @angular/router */ "tyNb");
+
 
 
 
@@ -391,8 +394,8 @@ class SingninComponent {
     /**
      *
      */
-    constructor(logonService, router) {
-        this.logonService = logonService;
+    constructor(authService, router) {
+        this.authService = authService;
         this.router = router;
         this.title = 'Online Kyc Portal';
         this.logonFormGroup = new _angular_forms__WEBPACK_IMPORTED_MODULE_1__["FormGroup"]({
@@ -404,9 +407,19 @@ class SingninComponent {
     ngOnInit() {
     }
     onSubmit() {
-        this.logonService.signIn(this.logonFormGroup.controls['userName'].value, this.logonFormGroup.controls['password'].value)
-            .subscribe(result => {
-            console.log(result);
+        let token;
+        let isAuthenticated = false;
+        this.authService.signIn(this.logonFormGroup.controls['userName'].value, this.logonFormGroup.controls['password'].value)
+            .subscribe((payload) => {
+            token = Object(jwt_decode__WEBPACK_IMPORTED_MODULE_2__["default"])(payload.token, { header: true });
+            let decoded = Object(jwt_decode__WEBPACK_IMPORTED_MODULE_2__["default"])(payload.token);
+            this.authService.setUserInfo(decoded);
+            if (token != '')
+                isAuthenticated = true;
+            if (this.authService.isAdmin())
+                this.router.navigateByUrl('/review');
+            else
+                this.router.navigateByUrl('/upload');
         });
     }
     register() {
@@ -414,7 +427,7 @@ class SingninComponent {
         this.router.navigateByUrl('/register');
     }
 }
-SingninComponent.ɵfac = function SingninComponent_Factory(t) { return new (t || SingninComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_auth_service__WEBPACK_IMPORTED_MODULE_2__["AuthService"]), _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_angular_router__WEBPACK_IMPORTED_MODULE_3__["Router"])); };
+SingninComponent.ɵfac = function SingninComponent_Factory(t) { return new (t || SingninComponent)(_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_auth_service__WEBPACK_IMPORTED_MODULE_3__["AuthService"]), _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdirectiveInject"](_angular_router__WEBPACK_IMPORTED_MODULE_4__["Router"])); };
 SingninComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineComponent"]({ type: SingninComponent, selectors: [["app-singnin"]], decls: 24, vars: 1, consts: [[1, "container"], [1, "row"], [1, "col-sm-9", "col-md-7", "col-lg-5", "mx-auto"], [1, "card", "card-signin", "my-5"], [1, "card-body"], [1, "card-title", "text-center"], [1, "form-signin", 3, "formGroup"], [1, "form-label-group"], ["formControlName", "userName", "type", "email", "id", "inputEmail", "placeholder", "Email address", "required", "", "autofocus", "", 1, "form-control"], ["for", "inputEmail"], ["formControlName", "password", "type", "password", "id", "inputPassword", "placeholder", "Password", "required", "", 1, "form-control"], ["for", "inputPassword"], [1, "custom-control", "custom-checkbox", "mb-3"], ["formControlName", "rememberMe", "type", "checkbox", "id", "customCheck1", 1, "custom-control-input"], ["for", "customCheck1", 1, "custom-control-label"], ["type", "button", 1, "btn", "btn-lg", "btn-primary", "btn-block", "text-uppercase", 3, "click"], ["type", "submit", 1, "btn", "btn-lg", "btn-primary", "btn-block", "text-uppercase", 3, "click"]], template: function SingninComponent_Template(rf, ctx) { if (rf & 1) {
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](0, "div", 0);
         _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵelementStart"](1, "div", 1);
@@ -468,7 +481,7 @@ SingninComponent.ɵcmp = _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵdefineC
                 templateUrl: './singnin.component.html',
                 styleUrls: ['./singnin.component.css']
             }]
-    }], function () { return [{ type: _auth_service__WEBPACK_IMPORTED_MODULE_2__["AuthService"] }, { type: _angular_router__WEBPACK_IMPORTED_MODULE_3__["Router"] }]; }, null); })();
+    }], function () { return [{ type: _auth_service__WEBPACK_IMPORTED_MODULE_3__["AuthService"] }, { type: _angular_router__WEBPACK_IMPORTED_MODULE_4__["Router"] }]; }, null); })();
 
 
 /***/ }),
@@ -496,13 +509,17 @@ class AuthGuard {
         this.router = router;
     }
     canActivate(route, state) {
-        this.handleAuthorization(false, state);
-        return false;
-    }
-    handleAuthorization(isAuthenticated, state) {
-        if (!isAuthenticated) {
+        if (route.url[0].toString() == 'review' && this.authService.isLoggedIn() && this.authService.isAdmin()) {
+            return true;
+        }
+        else if (route.url[0].toString() == 'upload' && this.authService.isLoggedIn() && !this.authService.isAdmin()) {
+            return true;
+        }
+        else if (!this.authService.isLoggedIn()) {
             this.router.navigateByUrl('sign-in');
         }
+        else
+            return false;
     }
 }
 AuthGuard.ɵfac = function AuthGuard_Factory(t) { return new (t || AuthGuard)(_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵinject"](_auth_service__WEBPACK_IMPORTED_MODULE_1__["AuthService"]), _angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵinject"](_angular_router__WEBPACK_IMPORTED_MODULE_2__["Router"])); };

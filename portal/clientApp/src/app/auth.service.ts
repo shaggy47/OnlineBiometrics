@@ -14,26 +14,30 @@ export class AuthService {
 
   constructor(private httpClient: HttpClient) { }
 
-  signIn(userName: string, pass: string): Observable<boolean> {
-    let token: any;
-    let isAuthenticated: boolean = false;
+  signIn(userName: string, pass: string): Observable<any> {
+    return this.httpClient.post(environment.authUrl + 'signin', { userName: userName, passwordHash: pass });
+  }
 
-    this.httpClient.post(environment.authUrl + 'signin', { userName: userName, passwordHash: pass })
-      .subscribe((payload: any) => {
+  setUserInfo(payload: any) {
 
-        token = jwtDecode(payload.token, { header: true });
-        let decoded = jwtDecode<JwtPayload>(payload.token);
-        console.log(decoded);
-        
-        console.log(token);
+    localStorage.setItem('userName', payload.unique_name);
+    localStorage.setItem('role', payload.role);
+    if (String(payload.role).toLowerCase().includes('admin'))
+      localStorage.setItem('isAdmin', 'true');
 
-        if (token != '')
-          isAuthenticated = true;
+    if (String(payload.unique_name) != '')
+      localStorage.setItem('validUser', 'true');
+    else
+      localStorage.setItem('validUser', 'false');
 
-      });
+  }
 
+  isLoggedIn(): boolean {
+    return Boolean(localStorage.getItem('validUser'));
+  }
 
-    return of(isAuthenticated);
+  isAdmin() {
+    return Boolean(localStorage.getItem('isAdmin'));
   }
 
 

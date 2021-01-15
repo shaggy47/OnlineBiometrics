@@ -8,21 +8,36 @@ import { SingninComponent } from './singnin/singnin.component';
   providedIn: 'root'
 })
 export class AuthGuard implements CanActivate {
-  constructor(private authService: AuthService, 
+  constructor(private authService: AuthService,
     private router: Router) {
 
   }
   canActivate(
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-      this.handleAuthorization(false, state);
-    return false;
-  }
 
-  private handleAuthorization(isAuthenticated: boolean, state: RouterStateSnapshot) {
-    if (!isAuthenticated) {
+    if (route.url[0].toString() == 'review' && this.authService.isLoggedIn() && this.authService.isAdmin()) {
+      return true;
+    } else if (route.url[0].toString() == 'upload' && this.authService.isLoggedIn() && !this.authService.isAdmin()) {
+      return true;
+    } else if (!this.authService.isLoggedIn()) {
       this.router.navigateByUrl('sign-in');
     }
+    else
+      return false;
+
   }
+
+  // private handleAuthorization(state: RouterStateSnapshot, route: ActivatedRouteSnapshot) {
+  //   if (!this.authService.isLoggedIn()) {
+  //     this.router.navigateByUrl('sign-in');
+  //   } else {
+  //     if (route.url[0].toString() == 'review' && this.authService.isAdmin())
+  //       this.router.navigateByUrl('review');
+  //     else if (this.authService.isLoggedIn())
+  //       this.router.navigateByUrl('upload');
+
+  //   }
+  // }
 
 }
