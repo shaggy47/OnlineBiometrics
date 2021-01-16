@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { UploadService } from '../upload.service';
 
 @Component({
   selector: 'app-upload',
@@ -7,9 +8,17 @@ import { Component, OnInit } from '@angular/core';
 })
 export class UploadComponent implements OnInit {
 
-  constructor() { }
+  constructor(private uploadService: UploadService) { }
 
   ngOnInit(): void {
+
+  }
+
+  getListFromServer() {
+    this.uploadService.getList()
+      .subscribe(list => {
+        console.log(list);
+      });
   }
 
 }

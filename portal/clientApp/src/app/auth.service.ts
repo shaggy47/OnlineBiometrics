@@ -22,10 +22,11 @@ export class AuthService {
     return this.httpClient.post(environment.authUrl + 'signin', { userName: userName, passwordHash: pass });
   }
 
-  setUserInfo(payload: any) {
+  setUserInfo(payload: any, token?:any) {
 
     localStorage.setItem('userName', payload.unique_name);
     localStorage.setItem('role', payload.role);
+    localStorage.setItem('token', token);
 
     if (String(payload.role).toLowerCase().includes('admin'))
       localStorage.setItem('isAdmin', 'true');
@@ -51,5 +52,9 @@ export class AuthService {
     localStorage.clear();
     this.userAuthenticated$.next(false);
   }
+
+  getToken(){
+    return localStorage.getItem('token');
+  }  
 
 }

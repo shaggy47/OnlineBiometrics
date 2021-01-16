@@ -40,7 +40,7 @@ export class SingninComponent implements OnInit {
 
         token = jwtDecode(payload.token, { header: true });
         let decoded = jwtDecode<JwtPayload>(payload.token);
-        this.authService.setUserInfo(decoded);
+        this.authService.setUserInfo(decoded, payload.token);
 
         if (token != '')
           isAuthenticated = true;
