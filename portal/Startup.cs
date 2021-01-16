@@ -29,8 +29,7 @@ namespace portal
                 options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
 
-
-            services.AddDefaultIdentity<ApplicationUser>(options =>
+            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = true;
                 options.Password.RequireDigit = true;
@@ -38,9 +37,20 @@ namespace portal
                 options.Password.RequireUppercase = true;
                 options.Password.RequiredLength = 7;
                 options.Password.RequireNonAlphanumeric = true;
-            })
-            .AddRoles<IdentityRole>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+            }).AddEntityFrameworkStores<ApplicationDbContext>();
+
+
+            // services.AddDefaultIdentity<ApplicationUser>(options =>
+            // {
+            //     options.SignIn.RequireConfirmedAccount = true;
+            //     options.Password.RequireDigit = true;
+            //     options.Password.RequireLowercase = true;
+            //     options.Password.RequireUppercase = true;
+            //     options.Password.RequiredLength = 7;
+            //     options.Password.RequireNonAlphanumeric = true;
+            // })
+            // .AddRoles<IdentityRole>()
+            //     .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddIdentityServer()
                 .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import jwtDecode, { JwtHeader, JwtPayload } from 'jwt-decode';
-import { Observable } from 'rxjs';
+import { Observable, Subject } from 'rxjs';
 import { of } from 'rxjs';
 
 
@@ -12,7 +12,11 @@ import { environment } from '../environments/environment';
 })
 export class AuthService {
 
-  constructor(private httpClient: HttpClient) { }
+  userAuthenticated$: Subject<boolean>;
+
+  constructor(private httpClient: HttpClient) {
+    this.userAuthenticated$ = new Subject<boolean>();
+  }
 
   signIn(userName: string, pass: string): Observable<any> {
     return this.httpClient.post(environment.authUrl + 'signin', { userName: userName, passwordHash: pass });
@@ -22,11 +26,14 @@ export class AuthService {
 
     localStorage.setItem('userName', payload.unique_name);
     localStorage.setItem('role', payload.role);
+
     if (String(payload.role).toLowerCase().includes('admin'))
       localStorage.setItem('isAdmin', 'true');
 
-    if (String(payload.unique_name) != '')
+    if (String(payload.unique_name) != ''){
       localStorage.setItem('validUser', 'true');
+      this.userAuthenticated$.next(true);
+    }      
     else
       localStorage.setItem('validUser', 'false');
 
@@ -40,5 +47,9 @@ export class AuthService {
     return Boolean(localStorage.getItem('isAdmin'));
   }
 
+  logout(){
+    localStorage.clear();
+    this.userAuthenticated$.next(false);
+  }
 
 }

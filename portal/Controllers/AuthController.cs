@@ -40,26 +40,31 @@ namespace portal
         public IActionResult SignIn([FromBody] ApplicationUser user)
         {
             var dbUser = _userManager.FindByNameAsync(user.UserName).Result;
-
-            if (dbUser == null)
-                return Unauthorized();
-
-            var role = _userManager.GetRolesAsync(dbUser).Result;
-            string[] roles = new string[role.Count];
-            role.CopyTo(roles, 0);
-
-            string token = string.Empty;
+            string hashedPassword = string.Empty;
 
             if (dbUser != null)
             {
-                var claims = new List<Claim>()
-                {
-                    new Claim(ClaimTypes.Name, dbUser.UserName),
-                    new Claim(ClaimTypes.Role, string.Join(';', roles))
-                };
+                hashedPassword = _userManager.PasswordHasher.HashPassword(dbUser, user.PasswordHash);
 
-                token = _tokenGenerator.GenerateJwtToken(dbUser, claims);
-                return Ok(new { user = dbUser.UserName, token = token });
+                PasswordVerificationResult result = _userManager.PasswordHasher.VerifyHashedPassword(dbUser, hashedPassword, user.PasswordHash);
+                if (result == PasswordVerificationResult.Success || result == PasswordVerificationResult.SuccessRehashNeeded)
+                {
+                    var role = _userManager.GetRolesAsync(dbUser).Result;
+                    string[] roles = new string[role.Count];
+                    role.CopyTo(roles, 0);
+                    string token = string.Empty;
+                    var claims = new List<Claim>()
+                    {
+                        new Claim(ClaimTypes.Name, dbUser.UserName),
+                        new Claim(ClaimTypes.Role, string.Join(';', roles))
+                    };
+
+                    token = _tokenGenerator.GenerateJwtToken(dbUser, claims);
+
+                    return Ok(new { user = dbUser.UserName, token = token });
+                }
+                else
+                    return Unauthorized();
             }
             else
                 return Unauthorized();

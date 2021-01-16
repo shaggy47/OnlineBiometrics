@@ -1,5 +1,8 @@
 <ul>
-  <li><a class="active" routerLink="/sign-in">Sign In</a></li>
+  <li>
+    <a *ngIf="!userAuthenticated" class="active" routerLink="/sign-in">Sign In</a>
+    <a *ngIf="userAuthenticated" class="active" (click)="logout()">Logout</a>
+  </li>
   <li><a routerLink="/register">Register</a></li>
   <li><a routerLink="/review">Review</a></li>
   <li><a routerLink="/upload">Upload</a></li>
