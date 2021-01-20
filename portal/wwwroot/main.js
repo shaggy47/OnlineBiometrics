@@ -128,12 +128,14 @@ class AuthInterceptor {
     }
     intercept(request, next) {
         let token = this.authService.getToken();
-        let req = request.clone({
-            setHeaders: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        return next.handle(req);
+        if (this.authService.isLoggedIn()) {
+            request = request.clone({
+                setHeaders: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+        }
+        return next.handle(request);
     }
 }
 AuthInterceptor.ɵfac = function AuthInterceptor_Factory(t) { return new (t || AuthInterceptor)(_angular_core__WEBPACK_IMPORTED_MODULE_0__["ɵɵinject"](_auth_service__WEBPACK_IMPORTED_MODULE_1__["AuthService"])); };

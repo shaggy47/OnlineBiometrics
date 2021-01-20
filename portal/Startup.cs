@@ -28,44 +28,6 @@ namespace portal
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlite(
                     Configuration.GetConnectionString("DefaultConnection")));
-
-            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
-            {
-                options.SignIn.RequireConfirmedAccount = true;
-                options.Password.RequireDigit = true;
-                options.Password.RequireLowercase = true;
-                options.Password.RequireUppercase = true;
-                options.Password.RequiredLength = 7;
-                options.Password.RequireNonAlphanumeric = true;
-            }).AddEntityFrameworkStores<ApplicationDbContext>();
-
-
-            // services.AddDefaultIdentity<ApplicationUser>(options =>
-            // {
-            //     options.SignIn.RequireConfirmedAccount = true;
-            //     options.Password.RequireDigit = true;
-            //     options.Password.RequireLowercase = true;
-            //     options.Password.RequireUppercase = true;
-            //     options.Password.RequiredLength = 7;
-            //     options.Password.RequireNonAlphanumeric = true;
-            // })
-            // .AddRoles<IdentityRole>()
-            //     .AddEntityFrameworkStores<ApplicationDbContext>();
-
-            services.AddIdentityServer()
-                .AddApiAuthorization<ApplicationUser, ApplicationDbContext>();
-
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-            }).AddJwtBearer(options =>
-            {
-
-                options.Authority = $"https://{Configuration["Auth:Domain"]}/";
-                options.Audience = Configuration["Auth:Audience"];
-            }).AddIdentityServerJwt();
-
             services.AddScoped<TokenGenerator>();
 
             services.AddControllersWithViews();
@@ -100,8 +62,6 @@ namespace portal
             app.UseRouting();
 
             app.UseAuthentication();
-            app.UseMiddleware<TokenHandlerMiddleware>();
-            app.UseIdentityServer();
             app.UseAuthorization();
             app.UseEndpoints(endpoints =>
             {
